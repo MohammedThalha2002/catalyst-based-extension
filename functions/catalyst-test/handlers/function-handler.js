@@ -1,5 +1,7 @@
 "use strict";
 import Cliq from "zcatalyst-integ-cliq";
+import axios from "axios";
+import cheerio from "cheerio";
 const functionHandler = Cliq.CliqFunction();
 
 functionHandler.buttonFunctionHandler(async (req, res, app) => {
@@ -11,14 +13,16 @@ functionHandler.buttonFunctionHandler(async (req, res, app) => {
   }
 });
 
-functionHandler.formSubmitHandler(async (req, res) => {
+functionHandler.formSubmitHandler(async (req, res, app) => {
   const formFunctionName = req.name;
   const values = req.form.values;
 
-  if(comp(formFunctionName, "posttrackform")){
-    
+  if (comp(formFunctionName, "posttrackform")) {
+    const url = values.url;
+    const userId = req?.access?.organization?.id;
+    const exp_price = values.price;
+    return await scrape(url, userId, exp_price, req, res, app);
   }
-
 });
 
 functionHandler.widgetButtonHandler(async (req, res) => {
@@ -252,7 +256,105 @@ async function authentication(req, res, app) {
   }
 }
 
-async function posttrackform(req, res, app) {}
+async function scrape(url, userId, exp_price, req, res, app) {
+  try {
+    await getHTML(url).then(async (html) => {
+      const $ = cheerio.load(html);
+      let curr_price = $(".a-price-whole").text();
+      curr_price = curr_price.replace(/,/g, "");
+      curr_price = parseInt(curr_price);
+      // if (exp_price > curr_price) {
+      //   res.status(400).json({
+      //     msg: "Expected price is lesser than the current price",
+      //     status: "price-error",
+      //   });
+      //   return;
+      // }
+      let title = $("#productTitle")
+        .text()
+        .trim()
+        .replace(/[|&;$%@"<>()+,]/g, "");
+      if (title.length > 100) {
+        if (title.includes(",")) {
+          title = title.split(",")[0];
+        } else {
+          title = title.substring(0, 90) + "...";
+        }
+      }
+      let features = [];
+      $("#feature-bullets>ul>li").each((i, desc) => {
+        if (i < 2) {
+          features.push(
+            $(desc)
+              .text()
+              .trim()
+              .replace(/[|&;$%@"<>()+,]/g, "")
+              .substring(0, 95) + "..."
+          );
+        }
+      });
+      let imgUrl = $("#imgTagWrapperId>img").attr("src");
+      let inStock =
+        $("#availability>span").text().trim() == "In stock" ? true : false;
+      let rating = parseFloat($("#acrPopover>span>a>span").text().trim());
+
+      const data = {
+        url: url,
+        title: title,
+        features: features,
+        imgUrl: imgUrl,
+        inStock: inStock,
+        rating: rating,
+        exp_price: exp_price,
+        curr_price: curr_price,
+        userId: userId,
+      };
+      console.log("NEW RESULT");
+      console.log(data);
+
+      //
+      if (userId) {
+        let zcql = app.zcql();
+
+        let query = `INSERT INTO Track (url, title, features, img_url, inStock, rating, exp_price, curr_price, userId)
+                    VALUES ('${url}', '${title}', '${JSON.stringify(
+          features
+        )}', '${imgUrl}', ${inStock}, ${rating}, ${exp_price}, ${curr_price}, '${userId}')`;
+
+        await zcql.executeZCQLQuery(query);
+      }
+      console.log("Added successfully");
+    });
+    return successBanner(res, "Product added successfully🔥");
+  } catch (error) {
+    console.log(error);
+    return failureBanner(res, "Something went wrong 😓");
+    // console.log("Failed to fetch the data from the url");
+    // const data = {
+    //   url: url,
+    //   title: "Updating...",
+    //   features: ["Updating...", "Updating..."],
+    //   imgUrl:
+    //     "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/310px-Placeholder_view_vector.svg.png",
+    //   inStock: true,
+    //   rating: 0.0,
+    //   exp_price: exp_price,
+    //   curr_price: 0.0,
+    //   email: email,
+    // };
+    // res.status(200).json({
+    //   msg: "Failed to upload the tracking data",
+    //   error: error,
+    //   status: "error",
+    //   data: data,
+    // });
+  }
+}
+
+const getHTML = async (url) => {
+  const { data: html } = await axios.get(url);
+  return html;
+};
 
 function successBanner(res, message) {
   res.text = message;

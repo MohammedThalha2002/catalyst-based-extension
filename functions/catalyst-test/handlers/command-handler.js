@@ -105,7 +105,7 @@ function authorize() {
 function newProductForm() {
   return {
     type: "form",
-    title: "Amazon Tracker",
+    title: "Amazon Tracker TEST",
     name: "track-input-form",
     hint: "Track the prices of your favorite Amazon products with our Price Tracker Form!",
     button_label: "Submit",
