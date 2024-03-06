@@ -1,0 +1,9 @@
+{
+  "functions": {
+    "targets": [
+      "catalyst-test"
+    ],
+    "ignore": [],
+    "source": "functions"
+  }
+}

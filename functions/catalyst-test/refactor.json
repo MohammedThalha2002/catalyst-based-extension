@@ -1,0 +1,24 @@
+{
+  "environment": {
+    "tld": ".com",
+    "data_center": "US",
+    "base_url": "https://cliq.zoho.com/company/834928503"
+  },
+  "access": {
+    "zoho_user_id": "834903105",
+    "user_id": "834903105",
+    "organization": { "type": "company", "id": "834928503" },
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "chat_id": "CT_2243231620774930924_834928503-B1"
+  },
+  "form": {
+    "values": {
+      "url": "https://www.amazon.in/s/ref=mega_elec_s23_2_2_1_2?rh=i%3Acomputers%2Cn%3A4363894031&ie=UTF8",
+      "price": 234
+    },
+    "name": "track-input-form",
+    "action": "submit"
+  },
+  "messages": {},
+  "name": "posttrackform"
+}

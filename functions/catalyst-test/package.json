@@ -1,0 +1,11 @@
+{
+	"name": "catalyst-test",
+	"version": "1.0.0",
+	"main": "index.js",
+	"author": "mohammedthalha2209@gmail.com",
+	"type": "module",
+	"dependencies": {
+		"zcatalyst-integ-cliq": "latest",
+		"zcatalyst-sdk-node": "^2.1.0"
+	}
+}
