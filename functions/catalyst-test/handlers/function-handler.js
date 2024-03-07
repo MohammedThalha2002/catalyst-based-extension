@@ -35,10 +35,18 @@ functionHandler.formSubmitHandler(async (req, res, app) => {
   }
 });
 
-functionHandler.widgetButtonHandler(async (req, res) => {
+functionHandler.widgetButtonHandler(async (req, res, app) => {
   const functionName = req.name;
   if (comp(functionName, "WIDGETaddProduct")) {
-    return newProductForm();
+    return WIDGETaddProduct();
+  } else if (comp(functionName, "WIDGETdeleteProduct")) {
+    return await WIDGETdeleteProduct(req, res, app);
+  } else if (comp(functionName, "WIDGETupdatePrice")) {
+    return WIDGETupdatePrice(req);
+  } else if (comp(functionName, "WIDGETenORdi")) {
+    return WIDGETenableORdiableTracking(req, res, app);
+  } else if (comp(functionName, "WIDGETnavigate")) {
+    return WIDGETnavigate(req, res, app);
   }
 });
 
@@ -389,23 +397,9 @@ async function enableORdisable(req, res, app) {
   }
 }
 
-function successBanner(res, message) {
-  res.text = message;
-  res.status = "success";
-  res.type = "banner";
-  return res;
-}
-
-function failureBanner(res, message) {
-  res.text = message;
-  res.status = "failure";
-  res.type = "banner";
-  return res;
-}
-
 // WIDGET FUNCTIONS
 
-function newProductForm() {
+function WIDGETaddProduct() {
   return {
     type: "form",
     title: "Amazon Tracker TEST",
@@ -440,4 +434,289 @@ function newProductForm() {
       name: "posttrackform",
     },
   };
+}
+
+async function WIDGETdeleteProduct(req, res, app) {
+  const id = req.target?.id;
+
+  const zcql = app.zcql();
+
+  const deleteQuery = `
+      DELETE FROM Track
+      WHERE ROWID = '${id}';
+    `;
+
+  try {
+    await zcql.executeZCQLQuery(deleteQuery);
+    console.log("Deleted successfully");
+    return await showWidgetPage(req, res, app);
+  } catch (error) {
+    console.log(error);
+    return failureBanner(res, "Failed to delete the product");
+  }
+}
+
+function WIDGETupdatePrice(req) {
+  const id = req.target?.id;
+  const form = {
+    type: "form",
+    title: "Product Update Form",
+    name: id,
+    hint: "Update your new expected price",
+    button_label: "Submit",
+    inputs: [
+      {
+        name: "exp_price",
+        label: "Expected Price",
+        placeholder: "Enter your new expected price",
+        min: "0",
+        max: "100000",
+        mandatory: true,
+        type: "number",
+      },
+    ],
+    action: {
+      type: "invoke.function",
+      name: "updatePriceForm",
+    },
+  };
+  return form;
+}
+
+async function WIDGETenableORdiableTracking(req, res, app) {
+  const key = req.target?.id;
+  const zcql = app.zcql();
+  let updateQuery = "";
+  if (key.includes("disable")) {
+    const id = key.split("disable").pop();
+    updateQuery = `
+      UPDATE Track
+      SET track_enabled = false
+      WHERE ROWID = '${id}';
+    `;
+  } else if (key.includes("enable")) {
+    const id = key.split("enable").pop();
+    updateQuery = `
+      UPDATE Track
+      SET track_enabled = true
+      WHERE ROWID = '${id}';
+    `;
+  }
+  try {
+    await zcql.executeZCQLQuery(updateQuery);
+    return await showWidgetPage(req, res, app);
+  } catch (error) {
+    console.log(error);
+    return failureBanner(res, "Something went wrong");
+  }
+}
+
+async function WIDGETnavigate(req, res, app) {
+  const key = req.target?.id;
+  let currPage = 1;
+  if (key.includes("prev_")) {
+    currPage = key.split("prev_").pop();
+  } else {
+    currPage = key.split("next_").pop();
+  }
+  currPage = parseInt(currPage);
+  return await showWidgetPage(req, res, app, currPage);
+}
+
+// SHOW WIDGET STARTING PAGE
+async function showWidgetPage(req, res, app, currPage) {
+  const tabsArr = [
+    { label: "My Products" + currPage ? currPage : "", id: "myproducts" },
+  ];
+  const userId = req?.access?.organization?.id;
+  const page = currPage || 1;
+  const limit = 3;
+  const offset = (page - 1) * limit + 1;
+
+  const dataQuery = `SELECT * FROM Track WHERE userId = '${userId}' LIMIT ${limit} OFFSET ${offset};`;
+  const countQuery = `SELECT COUNT(ROWID) FROM Track WHERE userId = '${userId}';`;
+
+  let zcql = app.zcql();
+
+  try {
+    let docs = await zcql.executeZCQLQuery(dataQuery);
+    const countResults = await zcql.executeZCQLQuery(countQuery);
+    //
+    const totalCount = countResults[0].Track.ROWID;
+    // console.log(totalCount);
+    const hasNextPage = page * limit < totalCount;
+    const hasPrevPage = page > 1;
+
+    const meta = {
+      page: page,
+      hasPrevPage: hasPrevPage,
+      hasNextPage: hasNextPage,
+    };
+    // alter docs
+    docs = docs.map((item) => item.Track);
+    docs.forEach((item) => delete item.Track);
+    const tracks = docs;
+
+    // sections
+    const sections = [{ id: 1, elements: [] }];
+    // adding elements
+    let count = (meta.page - 1) * limit + 1;
+    tracks.forEach((track) => {
+      const title =
+        track.title.length > 95
+          ? `${track.title.substring(0, 90)}...`
+          : track.title;
+      const features =
+        JSON.parse(track.features) && JSON.parse(track.features).length > 0
+          ? JSON.parse(track.features)[0]
+          : "Highly recommended to anyone in search of high-quality product with top-notch features.";
+
+      const element = {
+        type: "title",
+        text: `${count}. ${title}`,
+      };
+
+      sections[0].elements.push(element);
+
+      sections[0].elements.push({
+        type: "subtext",
+        text: `📦${features}`,
+      });
+
+      sections[0].elements.push({
+        type: "text",
+        text: `*💸Curr Price* : ₹${track.curr_price}\n*💵Exp Price* : ₹${track.exp_price}`,
+      });
+
+      const buttons = [
+        {
+          label: "Update",
+          type: "invoke.function",
+          name: "WIDGETupdatePrice",
+          id: `${track.ROWID}`,
+          emotion: "positive",
+        },
+        {
+          label: "Delete",
+          type: "invoke.function",
+          name: "WIDGETdeleteProduct",
+          id: `${track.ROWID}`,
+          emotion: "negative",
+        },
+        {
+          label: track.track_enabled ? "Disable" : "Enable",
+          type: "invoke.function",
+          name: "WIDGETenORdi",
+          id: `${track.track_enabled ? "disable" : "enable"}${track.ROWID}`,
+          emotion: track.track_enabled ? "negative" : "positive",
+        },
+      ];
+
+      sections[0].elements.push({
+        type: "buttons",
+        buttons: buttons,
+      });
+
+      sections[0].elements.push({
+        type: "divider",
+      });
+
+      count++;
+    });
+
+    // HEADER PART
+    const header = {
+      title: "My Products",
+      navigation: "new",
+      buttons: [
+        {
+          label: "Add Product",
+          type: "invoke.function",
+          name: "WIDGETaddProduct",
+          id: "section",
+          emotion: "positive",
+        },
+      ],
+    };
+    // FOOTER PART
+    const footer = {};
+    if (meta.hasPrevPage || meta.hasNextPage) {
+      const buttons = [];
+      if (meta.hasPrevPage) {
+        const newPage = meta.page - 1;
+        buttons.push({
+          label: "◀️ Prev",
+          type: "invoke.function",
+          name: "WIDGETnavigate",
+          id: `prev_${newPage}`,
+          emotion: "positive",
+        });
+      }
+      if (meta.hasNextPage) {
+        const newPage = meta.page + 1;
+        buttons.push({
+          label: "Next ▶️",
+          type: "invoke.function",
+          name: "WIDGETnavigate",
+          id: `next_${newPage}`,
+          emotion: "positive",
+        });
+      }
+      footer.buttons = buttons;
+    }
+    //
+    const response = {
+      type: "applet",
+      header: header,
+      tabs: tabsArr,
+      active_tab: "myproducts",
+      sections: sections,
+      footer: footer,
+    };
+    return {
+      ...res,
+      ...response,
+    };
+  } catch (error) {
+    // show error
+    console.log("error in widget", error);
+    return showError(res);
+  }
+}
+
+function showError(res) {
+  const errorPageRes = {
+    type: "applet",
+    data_type: "info",
+    tabs: tabsArr,
+    info: {
+      title: "Something went wrong 😔",
+      description: "Reload the page to fix the error",
+      image_url:
+        "https://cdn.dribbble.com/users/1078347/screenshots/2799566/oops.png",
+    },
+    active_tab: "myproducts",
+  };
+
+  const result = {
+    ...res,
+    ...errorPageRes,
+  };
+  return result;
+}
+
+// COMMON - BANNERS
+
+function successBanner(res, message) {
+  res.text = message;
+  res.status = "success";
+  res.type = "banner";
+  return res;
+}
+
+function failureBanner(res, message) {
+  res.text = message;
+  res.status = "failure";
+  res.type = "banner";
+  return res;
 }

@@ -38,7 +38,7 @@ widget.viewHandler(async (req, res, app) => {
     // sections
     const sections = [{ id: 1, elements: [] }];
     // adding elements
-    let count = (meta.page - 1) * limit;
+    let count = (meta.page - 1) * limit + 1;
     tracks.forEach((track) => {
       const title =
         track.title.length > 95
@@ -71,20 +71,20 @@ widget.viewHandler(async (req, res, app) => {
           label: "Update",
           type: "invoke.function",
           name: "WIDGETupdatePrice",
-          id: `update${track.ROWID}`,
+          id: `${track.ROWID}`,
           emotion: "positive",
         },
         {
           label: "Delete",
           type: "invoke.function",
           name: "WIDGETdeleteProduct",
-          id: `delete${track.ROWID}`,
+          id: `${track.ROWID}`,
           emotion: "negative",
         },
         {
           label: track.track_enabled ? "Disable" : "Enable",
           type: "invoke.function",
-          name: "WIDGETenableORdiableTracking",
+          name: "WIDGETenORdi",
           id: `${track.track_enabled ? "disable" : "enable"}${track.ROWID}`,
           emotion: track.track_enabled ? "negative" : "positive",
         },
