@@ -39,68 +39,75 @@ widget.viewHandler(async (req, res, app) => {
     const sections = [{ id: 1, elements: [] }];
     // adding elements
     let count = (meta.page - 1) * limit + 1;
-    tracks.forEach((track) => {
-      const title =
-        track.title.length > 95
-          ? `${track.title.substring(0, 90)}...`
-          : track.title;
-      const features =
-        JSON.parse(track.features) && JSON.parse(track.features).length > 0
-          ? JSON.parse(track.features)[0]
-          : "Highly recommended to anyone in search of high-quality product with top-notch features.";
+    if (tracks.length > 0) {
+      tracks.forEach((track) => {
+        const title =
+          track.title.length > 95
+            ? `${track.title.substring(0, 90)}...`
+            : track.title;
+        const features =
+          JSON.parse(track.features) && JSON.parse(track.features).length > 0
+            ? JSON.parse(track.features)[0]
+            : "Highly recommended to anyone in search of high-quality product with top-notch features.";
 
-      const element = {
-        type: "title",
-        text: `${count}. ${title}`,
-      };
+        const element = {
+          type: "title",
+          text: `${count}. ${title}`,
+        };
 
-      sections[0].elements.push(element);
+        sections[0].elements.push(element);
 
-      sections[0].elements.push({
-        type: "subtext",
-        text: `📦${features}`,
+        sections[0].elements.push({
+          type: "subtext",
+          text: `📦${features}`,
+        });
+
+        sections[0].elements.push({
+          type: "text",
+          text: `*💸Curr Price* : ₹${track.curr_price}\n*💵Exp Price* : ₹${track.exp_price}`,
+        });
+
+        const buttons = [
+          {
+            label: "Update",
+            type: "invoke.function",
+            name: "WIDGETupdatePrice",
+            id: `${track.ROWID}`,
+            emotion: "positive",
+          },
+          {
+            label: "Delete",
+            type: "invoke.function",
+            name: "WIDGETdeleteProduct",
+            id: `${track.ROWID}`,
+            emotion: "negative",
+          },
+          {
+            label: track.track_enabled ? "Disable" : "Enable",
+            type: "invoke.function",
+            name: "WIDGETenORdi",
+            id: `${track.track_enabled ? "disable" : "enable"}${track.ROWID}`,
+            emotion: track.track_enabled ? "negative" : "positive",
+          },
+        ];
+
+        sections[0].elements.push({
+          type: "buttons",
+          buttons: buttons,
+        });
+
+        sections[0].elements.push({
+          type: "divider",
+        });
+
+        count++;
       });
-
+    } else {
       sections[0].elements.push({
         type: "text",
-        text: `*💸Curr Price* : ₹${track.curr_price}\n*💵Exp Price* : ₹${track.exp_price}`,
+        text: "No tracked products found! 😕\nIt seems like you haven't added any Amazon products to track yet. To get started, use the /newproduct command to add a product or visit the Amazon website to find items you'd like to monitor. 🛍️✨",
       });
-
-      const buttons = [
-        {
-          label: "Update",
-          type: "invoke.function",
-          name: "WIDGETupdatePrice",
-          id: `${track.ROWID}`,
-          emotion: "positive",
-        },
-        {
-          label: "Delete",
-          type: "invoke.function",
-          name: "WIDGETdeleteProduct",
-          id: `${track.ROWID}`,
-          emotion: "negative",
-        },
-        {
-          label: track.track_enabled ? "Disable" : "Enable",
-          type: "invoke.function",
-          name: "WIDGETenORdi",
-          id: `${track.track_enabled ? "disable" : "enable"}${track.ROWID}`,
-          emotion: track.track_enabled ? "negative" : "positive",
-        },
-      ];
-
-      sections[0].elements.push({
-        type: "buttons",
-        buttons: buttons,
-      });
-
-      sections[0].elements.push({
-        type: "divider",
-      });
-
-      count++;
-    });
+    }
 
     // HEADER PART
     const header = {
