@@ -26,52 +26,96 @@ botHandler.menuActionHandler(async (req, res, app) => {
 });
 
 botHandler.webHookHandler(async (req, res) => {
-  // Sample handler for incoming mails in ZohoMail
-  // Please configure the bot in ZohoMail's outgoing webhooks
-  const reqBody = JSON.parse(req.body);
-  const summary = reqBody.summary || "";
-  const bodyStr = `*From*: ${reqBody.fromAddress} \n *Subject*: ${
-    reqBody.subject
-  } \n *Content*: ${
-    summary.length > 100 ? summary.substring(0, 100) : summary
-  }`;
+  const track = JSON.parse(req.body);
+  const id = track.ROWID;
+  const title = track.title;
+  const img_url = track.img_url;
+  const url = track.url;
+  const inStock = track.inStock ? "IN STOCK" : "OUT OF STOCK";
+  const rating = track.rating;
+  let stars = "";
 
-  res.bot = res.newBotDetails(
-    "PostPerson",
-    "https://www.zoho.com/sites/default/files/catalyst/functions-images/icon-robot.jpg"
-  );
+  for (let i = 0; i < rating; i++) {
+    stars += "⭐";
+  }
 
-  const card = res.newCard();
-  card.title = "New Mail";
-  card.thumbnail =
-    "https://www.zoho.com/sites/default/files/catalyst/functions-images/mail.svg";
-  res.card = card;
+  const features = JSON.parse(track.features) || [];
+  let feature1 = "The product is extremely satisfied with its performance.";
+  let feature2 =
+    "Highly recommended to anyone in search of high-quality product with top-notch features.";
 
-  const button = res.newButton();
-  button.label = "open mail";
-  button.type = "+";
-  button.hint = "Click to open the mail in a new tab";
+  if (features.length > 0) {
+    feature1 = features[0].replace(/"/g, "");
+    feature1 =
+      feature1.length > 99 ? feature1.substring(0, 95) + "..." : feature1;
 
-  const action = button.newActionObject();
-  action.type = "open.url";
+    feature2 = features[1] ? features[1].replace(/"/g, "") : feature2;
+    feature2 =
+      feature2.length > 99 ? feature2.substring(0, 95) + "..." : feature2;
+  }
 
-  const actionData = action.newActionDataObject();
-  actionData.web = `https://mail.zoho.com/zm/#mail/folder/inbox/p/${reqBody.messageId}`;
+  const tracking = track.track_enabled;
+  const trackBtnLabel = tracking ? "Disable" : "Enable";
+  const trackBtnID = tracking ? `disable${id}` : `enable${id}`;
 
-  action.data = actionData;
-  button.action = action;
-
-  res.addButton(button);
-
-  const gifSlide = res.newSlide();
-  gifSlide.type = "images";
-  gifSlide.title = "";
-  gifSlide.data = [
-    "https://media.giphy.com/media/efyEShk2FJ9X2Kpd7V/giphy.gif",
-  ];
-  res.addSlide(gifSlide);
-
-  return res;
+  const response = {
+    text: "🎉 *Great News! Price Drop Alert🤩!*\n🥳Hurrayyyy! Your awaited item is now available. Hurry and grab this exclusive offer before stocks run out.🛍️✨ Happy shopping!",
+    bot: {
+      name: "Amazon Tracker",
+      image: "https://i.postimg.cc/KcKstCmd/logo.png",
+    },
+    slides: [
+      { type: "images", title: title, data: [img_url] },
+      {
+        type: "label",
+        title: inStock,
+        data: [
+          { "💸Current Price": `₹${track.curr_price}` },
+          { "💵Expected Price": `₹${track.exp_price}` },
+        ],
+      },
+      { type: "text", title: "Rating : " + rating, data: stars },
+      {
+        type: "list",
+        title: "Features",
+        buttons: [
+          {
+            label: "Url",
+            hint: "",
+            action: { type: "open.url", data: { web: url } },
+          },
+          {
+            label: "Update",
+            hint: "",
+            type: "+",
+            action: { type: "invoke.function", data: { name: "updatePrice" } },
+            key: id,
+          },
+          {
+            label: "Delete",
+            hint: "",
+            type: "-",
+            action: {
+              type: "invoke.function",
+              data: { name: "deleteProduct" },
+            },
+            key: id,
+          },
+          {
+            label: trackBtnLabel,
+            hint: "",
+            action: {
+              type: "invoke.function",
+              data: { name: "enableORdisable" },
+            },
+            key: trackBtnID,
+          },
+        ],
+        data: [feature1, feature2],
+      },
+    ],
+  };
+  // we have to post it to the tracker bot
 });
 
 function comp(var1, var2) {
