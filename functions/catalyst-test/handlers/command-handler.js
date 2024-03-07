@@ -2,65 +2,16 @@
 import cliq from "zcatalyst-integ-cliq";
 const command = cliq.command();
 
-command.executionHandler(async (req, res) => {
-  let text;
+command.executionHandler(async (req, res, app) => {
   const commandName = req.name;
   if (comp(commandName, "authorize")) {
     return authorize();
   } else if (comp(commandName, "myproducts")) {
-    return getForm();
+    return await myProducts(req, res, app);
   } else if (comp(commandName, "newproduct")) {
     return newProductForm();
   }
 });
-
-function getForm() {
-  const form = command.newHandlerResponse().newForm();
-  form.title = "Asset Request";
-  form.hint = "Raise your asset request";
-  form.name = "ID";
-  form.button_label = "Raise Request";
-  form.version = 1;
-
-  const actions = form.newFormActionsObject();
-  actions.submit = actions.newFormAction("formFunctionLatest"); // ** ENTER YOUR FORM FUNCTION NAME HERE **
-
-  form.actions = actions;
-
-  const userName = form.newFormInput();
-  userName.type = "text";
-  userName.name = "username";
-  userName.label = "Name";
-  userName.hint = "Please enter your name";
-  userName.placeholder = "John Reese";
-  userName.mandatory = true;
-  userName.value = "Harold Finch";
-  form.addInputs(userName);
-
-  const email = form.newFormInput();
-  email.type = "text";
-  email.format = "email";
-  email.name = "email";
-  email.label = "Email";
-  email.hint = "Enter your email address";
-  email.placeholder = "johnreese@poi.com";
-  email.mandatory = true;
-  email.value = "haroldfinch@samaritan.com";
-
-  const assetType = form.newFormInput();
-  assetType.type = "select";
-  assetType.trigger_on_change = true;
-  assetType.name = "asset-type";
-  assetType.label = "Asset Type";
-  assetType.hint = "Choose your request asset type";
-  assetType.placeholder = "Mobile";
-  assetType.mandatory = true;
-  assetType.addOption(assetType.newFormValue("Laptop", "laptop"));
-  assetType.addOption(assetType.newFormValue("Mobile", "mobile"));
-
-  form.addInputs(email, assetType);
-  return form;
-}
 
 function comp(var1, var2) {
   return var1.toUpperCase() === var2.toUpperCase();
@@ -100,6 +51,114 @@ function authorize() {
     ],
     text: "🚨🚨🚨🚨🚨",
   };
+}
+
+async function myProducts(req, res, app) {
+  const limit = 10;
+  const userId = req?.access?.organization?.id;
+
+  const zcql = app.zcql();
+
+  const dataQuery = userId
+    ? `SELECT * FROM Track WHERE userId = '${userId}' LIMIT ${limit};`
+    : `SELECT * FROM Track;`;
+
+  try {
+    let dataRes = await zcql.executeZCQLQuery(dataQuery);
+
+    // alter dataRes
+    dataRes = dataRes.map((item) => item.Track);
+    dataRes.forEach((item) => delete item.Track);
+
+    let count = 1;
+    const slidesList = [];
+    const tracks = dataRes;
+
+    if (tracks.length > 0) {
+      for (const track of tracks) {
+        const id = track.ROWID;
+        let title = track.title.toString();
+        if (title.length > 95) {
+          title = title.substring(0, 90) + "...";
+        }
+        const curr_price = track.curr_price;
+        const exp_price = track.exp_price;
+        const track_url = track.url;
+
+        const slidesList1 = {
+          type: "label",
+          title: `${count}. ${title}`,
+          buttons: [
+            {
+              label: "Url",
+              action: {
+                type: "open.url",
+                data: {
+                  web: track_url,
+                },
+              },
+            },
+            {
+              label: "Update",
+              type: "+",
+              action: {
+                type: "invoke.function",
+                data: {
+                  name: "updatePrice",
+                },
+              },
+              key: id,
+            },
+            {
+              label: "Delete",
+              type: "-",
+              action: {
+                type: "invoke.function",
+                data: {
+                  name: "deleteProduct",
+                },
+              },
+              key: id,
+            },
+            {
+              label: "More..",
+              action: {
+                type: "invoke.function",
+                data: {
+                  name: "productInfo",
+                },
+              },
+              key: id,
+            },
+          ],
+          data: [
+            { "💸Current Price": `₹${curr_price}` },
+            { "💵Expected Price": `₹${exp_price}` },
+          ],
+        };
+
+        slidesList.push(slidesList1);
+        count++;
+      }
+
+      res.bot = {
+        name: "Amazon Tracker",
+        image: "https://i.postimg.cc/KcKstCmd/logo.png",
+      };
+      res.slides = slidesList;
+      res.text = "Your Products 📦";
+      return res;
+    } else {
+      res.text =
+        "No tracked products found! 😕\nIt seems like you haven't added any Amazon products to track yet. To get started, use the /newproduct command to add a product or visit the Amazon website to find items you'd like to monitor. 🛍️✨";
+      return res;
+    }
+    //
+  } catch (error) {
+    console.log(error);
+    res.text = "SOmething went wrong";
+    return res;
+  }
 }
 
 function newProductForm() {
