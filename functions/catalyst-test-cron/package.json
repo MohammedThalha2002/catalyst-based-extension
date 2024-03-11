@@ -1,0 +1,11 @@
+{
+	"name": "catalyst-test-cron",
+	"version": "1.0.0",
+	"main": "index.js",
+	"author": "mohammedthalha2209@gmail.com",
+	"dependencies": {
+		"axios": "^1.6.7",
+		"cheerio": "^1.0.0-rc.12",
+		"zcatalyst-sdk-node": "latest"
+	}
+}

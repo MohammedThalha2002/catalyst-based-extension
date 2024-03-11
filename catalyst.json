@@ -1,7 +1,8 @@
 {
   "functions": {
     "targets": [
-      "catalyst-test"
+      "catalyst-test",
+      "catalyst-test-cron"
     ],
     "ignore": [],
     "source": "functions"
