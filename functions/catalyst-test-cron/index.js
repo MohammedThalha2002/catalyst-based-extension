@@ -54,7 +54,7 @@ async function findPrice(detail, zcql) {
       }
 
       // notify the user on the price drop
-      if (curr_price <= detail.exp_price) {
+      if (curr_price <= parseInt(detail.exp_price)) {
         console.log("price drop alert");
         console.log("Curr Price : ", curr_price);
         console.log("Exp Price : ", exp_price);
@@ -88,14 +88,12 @@ async function updatePriceDetails(id, curr_price, zcql) {
 
 async function notifyUser(body, zcql) {
   console.log(body);
-  let email = body.email;
+  let userId = body.userId;
 
-  let query = `select * from users where email = '${email}'`;
+  let query = `select * from users where userId = '${userId}'`;
   let queryRes = await zcql.executeZCQLQuery(query);
   const result = queryRes[0].Users;
   //
-  console.log(result.email);
-  let userId = result.userId;
   let token = result.token;
 
   //
@@ -138,7 +136,11 @@ async function notifyUser(body, zcql) {
       image: "https://i.postimg.cc/KcKstCmd/logo.png",
     },
     slides: [
-      { type: "images", title: title, data: [img_url] },
+      {
+        type: "images",
+        title: title,
+        data: [img_url],
+      },
       {
         type: "label",
         title: inStock,
@@ -155,7 +157,10 @@ async function notifyUser(body, zcql) {
           {
             label: "Url",
             hint: "",
-            action: { type: "open.url", data: { web: url } },
+            action: {
+              type: "open.url",
+              data: { web: url },
+            },
           },
           {
             label: "Update",
@@ -189,12 +194,19 @@ async function notifyUser(body, zcql) {
     ],
   };
 
-  const webhookUrl = `https://cliq.zoho.com/company/${userId}/api/v2/bots/testingbot/message?zapikey=${token}&appkey=sbx-NTQ3Ny0zZjBiNGQ4Ny01ZmQyLTQxOWItYTQ3OS0zNmRkZTAzOWRkMWQ=`;
+  console.log("Notifying user on the price drop");
+  console.log(response);
+
+  const testRes = {
+    text: JSON.stringify(response),
+  };
+
+  const webhookUrl = `https://cliq.zoho.com/api/v2/bots/testingbot/message?zapikey=${token}&appkey=sbx-NTQ3Ny0zZjBiNGQ4Ny01ZmQyLTQxOWItYTQ3OS0zNmRkZTAzOWRkMWQ=`;
 
   //   const sandbox = `https://cliq.zoho.com/company/${userId}/api/v2/applications/2305843009213699174/incoming?appkey=sbx-NTIyMy0yNDAxZDViMi02YTVhLTQyZGUtOWNhYy1hNDc0NDg2NzU5M2Q=`;
   //   const marketplace = `https://cliq.zoho.com/company/${userId}/api/v2/applications/5223/incoming?appkey=NTIyMy0yNDAxZDViMi02YTVhLTQyZGUtOWNhYy1hNDc0NDg2NzU5M2Q=`;
   await axios
-    .post(`${webhookUrl}&zapikey=${token}`, response)
+    .post(webhookUrl, testRes)
     .then((result) => {
       console.log("POSTED SUCCESSFULLY");
       console.log(result.data);
