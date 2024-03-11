@@ -5,7 +5,7 @@ const { default: axios } = require("axios");
 module.exports = async (cronDetails, context) => {
   console.log("Hello from index.js");
 
-  var app = catalyst.initialize(req);
+  var app = catalyst.initialize(context);
   let zcql = app.zcql();
 
   const dataQuery = `SELECT * FROM Track;`;
