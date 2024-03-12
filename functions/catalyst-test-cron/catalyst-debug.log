@@ -1,0 +1,35 @@
+[debug] [2024-03-11T12:22:33.671Z] : 
+[debug] [2024-03-11T12:22:33.672Z] : ----------------------------------------------------------------------
+[debug] [2024-03-11T12:22:33.672Z] : Command:      /opt/homebrew/Cellar/node/21.6.1/bin/node /opt/homebrew/bin/catalyst functions:shell
+[debug] [2024-03-11T12:22:33.672Z] : CLI Version:  1.17.3
+[debug] [2024-03-11T12:22:33.672Z] : Platform:     darwin
+[debug] [2024-03-11T12:22:33.672Z] : Node Version: v21.6.1
+[debug] [2024-03-11T12:22:33.673Z] : Time:         Mon Mar 11 2024 17:52:33 GMT+0530 (India Standard Time)
+[debug] [2024-03-11T12:22:33.673Z] : ----------------------------------------------------------------------
+[debug] [2024-03-11T12:22:33.673Z] : 
+[debug] [2024-03-11T12:22:34.035Z] : > authorizing via signed-in user option
+[debug] [2024-03-11T12:22:34.035Z] : > command requires scopes: ["ZohoCatalyst.projects.ALL","ZohoCatalyst.functions.ALL","ZohoCatalyst.functions.EXECUTE"]
+[debug] [2024-03-11T12:22:34.040Z] : >>>> HTTP REQUEST : GET https://api.catalyst.zoho.com/baas/v1/project/21459000000006068 
+
+[debug] [2024-03-11T12:22:34.810Z] : <<<< HTTP RESPONSE : 200
+Response Headers: {"server":"ZGS","date":"Mon, 11 Mar 2024 12:22:34 GMT","content-type":"application/vnd.catalyst.v2+json","transfer-encoding":"chunked","connection":"keep-alive","set-cookie":["46512fd555=63dd9cf89a6678b816d9580ec827ee61; Path=/","ZD_CSRF_TOKEN=9960ca22-fe51-44f2-87de-080521438af4;path=/;SameSite=None;Secure;priority=high","_zcsr_tmp=9960ca22-fe51-44f2-87de-080521438af4;path=/;SameSite=Strict;Secure;priority=high"],"x-content-type-options":"nosniff","x-xss-protection":"1","cache-control":"private,no-cache,no-store,max-age=0,must-revalidate","pragma":"no-cache","expires":"Thu, 01 Jan 1970 00:00:00 GMT","x-frame-options":"DENY","strict-transport-security":"max-age=63072000"}
+
+[debug] [2024-03-11T12:22:34.815Z] : >>>> HTTP REQUEST : GET https://api.catalyst.zoho.com/baas/v1/project/21459000000006068/environment 
+
+[debug] [2024-03-11T12:22:35.073Z] : <<<< HTTP RESPONSE : 200
+Response Headers: {"server":"ZGS","date":"Mon, 11 Mar 2024 12:22:34 GMT","content-type":"application/vnd.catalyst.v2+json","transfer-encoding":"chunked","connection":"keep-alive","set-cookie":["46512fd555=04d9a2d1e2e86744f9516a3e9f805f56; Path=/","ZD_CSRF_TOKEN=9f09dc7f-9d15-46ae-bd84-fd79e6ba8b0b;path=/;SameSite=None;Secure;priority=high","_zcsr_tmp=9f09dc7f-9d15-46ae-bd84-fd79e6ba8b0b;path=/;SameSite=Strict;Secure;priority=high"],"x-content-type-options":"nosniff","x-xss-protection":"1","cache-control":"private,no-cache,no-store,max-age=0,must-revalidate","pragma":"no-cache","expires":"Thu, 01 Jan 1970 00:00:00 GMT","x-frame-options":"DENY","strict-transport-security":"max-age=63072000"}
+
+[debug] [2024-03-11T12:22:35.138Z] : >>>> HTTP REQUEST : GET https://api.catalyst.zoho.com/baas/v1/project/21459000000006068/function 
+Query params: {"type":"basicio,event,cron,applogic,integration,browser_logic"}
+
+[debug] [2024-03-11T12:22:35.406Z] : <<<< HTTP RESPONSE : 200
+Response Headers: {"server":"ZGS","date":"Mon, 11 Mar 2024 12:22:35 GMT","content-type":"application/vnd.catalyst.v2+json","transfer-encoding":"chunked","connection":"keep-alive","set-cookie":["46512fd555=bbdfb771565421abbe10f7a180903d28; Path=/","ZD_CSRF_TOKEN=104b1686-10d8-4543-a42f-f1481704918c;path=/;SameSite=None;Secure;priority=high","_zcsr_tmp=104b1686-10d8-4543-a42f-f1481704918c;path=/;SameSite=Strict;Secure;priority=high"],"x-content-type-options":"nosniff","x-xss-protection":"1","cache-control":"private,no-cache,no-store,max-age=0,must-revalidate","pragma":"no-cache","expires":"Thu, 01 Jan 1970 00:00:00 GMT","x-frame-options":"DENY","strict-transport-security":"max-age=63072000"}
+
+[debug] [2024-03-11T12:22:35.410Z] : unknown eol undefined hence skipping check
+[debug] [2024-03-11T12:22:35.410Z] : unknown eol undefined hence skipping check
+[info] [2024-03-11T12:23:53.589Z] : 
+change of index.js in catalyst-test-cron detected. Preparing your function, please wait...
+[info] [2024-03-11T12:23:54.236Z] : ℹ functions[catalyst-test-cron]: ready!
+[info] [2024-03-11T12:24:54.832Z] : 
+change of index.js in catalyst-test-cron detected. Preparing your function, please wait...
+[info] [2024-03-11T12:24:55.444Z] : ℹ functions[catalyst-test-cron]: ready!

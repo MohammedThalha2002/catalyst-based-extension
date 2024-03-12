@@ -1,2 +1,4 @@
 /functions/catalyst-test/node_modules
 /functions/catalyst-test-cron/node_modules
+/functions/track-scheduler/node_modules
+.build

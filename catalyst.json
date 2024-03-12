@@ -2,7 +2,8 @@
   "functions": {
     "targets": [
       "catalyst-test",
-      "catalyst-test-cron"
+      "catalyst-test-cron",
+      "track-scheduler"
     ],
     "ignore": [],
     "source": "functions"

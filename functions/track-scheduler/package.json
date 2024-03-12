@@ -1,0 +1,10 @@
+{
+	"name": "track-scheduler",
+	"version": "1.0.0",
+	"main": "index.js",
+	"author": "mohammedthalha2209@gmail.com",
+	"dependencies": {
+		"axios": "^1.6.7",
+		"zcatalyst-sdk-node": "latest"
+	}
+}
