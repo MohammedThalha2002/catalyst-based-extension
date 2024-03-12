@@ -9,17 +9,14 @@ module.exports = async (cronDetails, context) => {
   let query = `select * from Users`;
   try {
     let queryRes = await zcql.executeZCQLQuery(query);
-
+    console.log(queryRes);
     for (const user of queryRes) {
-      await fetchTracks(zcql, user[0].Users);
+      // console.log(user);
+      await fetchTracks(zcql, user.Users);
     }
   } catch (error) {
     console.log(error);
   }
-
-  // iterate through al the users and find their respective tracks
-
-  // send the tracks
 
   context.closeWithSuccess();
 };
@@ -90,9 +87,9 @@ async function fetchTracks(zcql, user) {
           },
         ],
       };
-
+      console.log(message);
       // send to the bot
-      postToTrackazonBot(user.token, message);
+      await postToTrackazonBot(user.token, message);
     }
   } catch (error) {
     console.log(error);
@@ -100,6 +97,7 @@ async function fetchTracks(zcql, user) {
 }
 
 async function postToTrackazonBot(token, response) {
+  console.log("SENDING TRACKS TO USER");
   const webhookUrl = `https://cliq.zoho.com/api/v2/bots/testingbot/message?zapikey=${token}&appkey=sbx-NTQ3Ny0zZjBiNGQ4Ny01ZmQyLTQxOWItYTQ3OS0zNmRkZTAzOWRkMWQ=`;
 
   await axios
